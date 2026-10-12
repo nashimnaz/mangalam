@@ -3,10 +3,12 @@
  * Node.js + Express + Hostinger MySQL
  * Port: 4000
  */
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const fs = require('fs');
 const { testConnection } = require('./db/mysql');
 const { runMigrations } = require('./db/migrate');
@@ -188,12 +190,30 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // ── Debug: Check environment config (non-sensitive) ────────────────────────
-app.get('/api/debug/env', (req, res) => {
+app.get('/api/debug/env', async (req, res) => {
+  let db_status = 'testing';
+  let db_error = null;
+  try {
+    const { pool } = require('./db/mysql');
+    const conn = await pool.getConnection();
+    await conn.query('SELECT 1');
+    conn.release();
+    db_status = '✅ connected';
+  } catch (err) {
+    db_status = '❌ failed';
+    db_error = err.message;
+  }
+
   res.json({
+    db_status,
+    db_error,
+    db_host:               process.env.DB_HOST || 'auth-db2210.hstgr.io (fallback)',
+    db_name:               process.env.DB_NAME || 'u614850386_mangalam (fallback)',
+    db_user:               process.env.DB_USER || 'u614850386_mangalam123 (fallback)',
+    db_pass_configured:    Boolean(process.env.DB_PASSWORD),
     cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? '✅ set' : '❌ missing',
     cloudinary_api_key:    process.env.CLOUDINARY_API_KEY    ? '✅ set' : '❌ missing',
     cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ set' : '❌ missing',
-    db_host:               process.env.DB_HOST || '❌ missing',
     node_env:              process.env.NODE_ENV || 'not set',
   });
 });

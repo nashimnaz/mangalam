@@ -2,11 +2,14 @@
  * mysql.js — MySQL Database Connection Pool for Mangalam Travel & Tours
  * Hostinger Production Database
  */
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
+  host: process.env.DB_HOST || 'auth-db2210.hstgr.io',
   port: Number(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || 'u614850386_mangalam123',
   password: process.env.DB_PASSWORD || '',
